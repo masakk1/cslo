@@ -1,41 +1,38 @@
---// Libraries //
-require("lib.batteries"):export()
-local vec2 = require("lib.batteries.vec2")
+--++ DEBUGGING ++--
+if arg[2] == "debug" then
+    require("lldebugger").start()
+end
+--++ DEBUGGING ++--
 
---// Variables //
-local speed = 8 -- character speed
-local player = {
-    position = vec2(0, 0),
-    health = 100.0
-}
+--// Load //
+function love.load()
+    Object = require "lib.classic"
+    require "classes.player"
+
+    player = Player()
+end
 
 
 --// Draw //
-local function draw_player()
-    love.graphics.circle("fill", player.position.x, player.position.y, 30)
-end
 function love.draw()
-    draw_player()
+    player:draw()
 end
 
---// Update
-function love.update()
-    -- Input Handling
-    local x, y = 0, 0
-    if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
-        y = y - 1
-    end
-    if love.keyboard.isDown("s") or love.keyboard.isDown("down") then
-        y = y + 1
-    end
-    if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
-        x = x - 1
-    end
-    if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
-        x = x + 1
-    end
 
-    -- Move Player
-    player.position:add_inplace(vec2(x * speed, y * speed))
-
+--// Update //
+function love.update(dt)
+    player:update(dt)
 end
+
+
+--++ DEBUGGING ++--
+local love_errorhandler = love.errhand
+
+function love.errorhandler(msg)
+    if lldebugger then
+        error(msg, 2)
+    else
+        return love_errorhandler(msg)
+    end
+end
+--++ DEBUGGING ++--
