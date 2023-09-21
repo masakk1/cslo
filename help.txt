@@ -7,4 +7,5 @@ learning: https://github.com/Sheepolution/how-to-love/tree/master/book
 -- vscode extensions --
 Local Lua Debugger (Tom blind)
 Lua Language Server (sumneko)
+vscode-lua
 love-launcher (Jan Werder)
