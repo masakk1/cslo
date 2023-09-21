@@ -40,10 +40,16 @@ function Player:draw()
 	love.graphics.circle("line", self.x, self.y, self.radius)
 
 	--hands
-	local cos = math.cos(self.angle)
-	local sin = math.sin(self.angle)
-	local lhand_x = self.x + cos * (self.radius + self.hand_radius)
-	local lhand_y = self.y + sin * (self.radius + self.hand_radius)
+	local radius_sum = self.radius + self.hand_radius
+
+	local lhand_angle = self.angle + math.rad(45)
+	local lhand_x = self.x + math.cos(lhand_angle) * radius_sum
+	local lhand_y = self.y + math.sin(lhand_angle) * radius_sum
+
+	local rhand_angle = self.angle - math.rad(45)
+	local rhand_x = self.x + math.cos(rhand_angle) * radius_sum
+	local rhand_y = self.y + math.sin(rhand_angle) * radius_sum
 
 	love.graphics.circle("line", lhand_x, lhand_y, self.hand_radius)
+	love.graphics.circle("line", rhand_x, rhand_y, self.hand_radius)
 end
