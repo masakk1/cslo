@@ -4,22 +4,40 @@ if arg[2] == "debug" then
 end
 --++ DEBUGGING ++--
 
---// Load //
-function love.load()
-	Object = require("lib.classic")
-	require("classes.player")
+--// Variables //
+--collisions
+local bump = require("lib.bump")
 
-	player = Player()
-end
+local world = bump.newWorld()
+
+--objects
+Object = require("lib.classic")
+require("classes.player")
+require("classes.wall")
+
+local player = Player()
+world:add(player, player.x - player.radius, player.y - player.radius, player.radius * 2, player.radius * 2)
+
+local wallList = {}
+local test_wall = Wall(300, 300, 100, 100)
+world:add(test_wall, test_wall.x, test_wall.y, test_wall.width, test_wall.height)
+table.insert(wallList, test_wall)
+
+--// Load //
+function love.load() end
 
 --// Draw //
 function love.draw()
 	player:draw()
+
+	for i, wall in ipairs(wallList) do
+		wall:draw()
+	end
 end
 
 --// Update //
 function love.update(dt)
-	player:update(dt)
+	player:update(dt, world)
 end
 
 --++ DEBUGGING ++--

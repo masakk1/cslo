@@ -2,18 +2,37 @@ Player = Object:extend()
 
 --// Class //
 function Player:new()
+	self.isPlayer = true
+	self.name = "Tom"
+
+	self.cooldownds = {
+		attack = 0.2,
+	}
+
 	self.x = 0
 	self.y = 0
-	self.angle = 0
 	self.speed = 5 * 100
+	self.angle = 0
+
 	self.health = 100.0
+
 	self.radius = 25
 	self.hand_radius = 10
 	-- self.image = love.graphics.newImage("")
+
+	self.collisionFilter = function(item, other)
+		if other.isWall then
+			return "slide"
+		end
+	end
 end
 
-function Player:update(dt)
-	--movement
+function Player:attack(mouse_x, mouse_y)
+	print(self.name, "attacked")
+end
+
+function Player:update(dt, world)
+	--move input
 	local move_x, move_y = 0, 0
 	if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
 		move_y = move_y - 1
@@ -27,12 +46,21 @@ function Player:update(dt)
 	if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
 		move_x = move_x + 1
 	end
-	self.x = self.x + move_x * self.speed * dt
-	self.y = self.y + move_y * self.speed * dt
+	--move
+	local goal_x = self.x + move_x * self.speed * dt
+	local goal_y = self.y + move_y * self.speed * dt
+	local actualX, actualY, cols, len =
+		world:move(self, goal_x - self.radius, goal_y - self.radius, self.collisionFilter)
+	self.x, self.y = actualX + self.radius, actualY + self.radius
 
-	--look at
+	--get angle
 	local mouse_x, mouse_y = love.mouse.getPosition()
 	self.angle = math.atan2(mouse_y - self.y, mouse_x - self.x)
+
+	--action
+	if love.mouse.isDown(1) then
+		self:attack(mouse_x, mouse_y)
+	end
 end
 
 function Player:draw()
