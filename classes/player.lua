@@ -5,8 +5,8 @@ function Player:new()
 	self.isPlayer = true
 	self.name = "Tom"
 
-	self.cooldownds = {
-		attack = 0.2,
+	self.cooldowns = {
+		attack = { time = 0, max = 0.5 },
 	}
 
 	self.x = 0
@@ -32,6 +32,13 @@ function Player:attack(mouse_x, mouse_y)
 end
 
 function Player:update(dt, world)
+	--update cooldowns
+	for _, timer in pairs(self.cooldowns) do
+		if timer.time > 0 then
+			timer.time = timer.time - dt
+		end
+	end
+
 	--move input
 	local move_x, move_y = 0, 0
 	if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
@@ -58,8 +65,9 @@ function Player:update(dt, world)
 	self.angle = math.atan2(mouse_y - self.y, mouse_x - self.x)
 
 	--action
-	if love.mouse.isDown(1) then
+	if love.mouse.isDown(1) and self.cooldowns.attack.time <= 0 then
 		self:attack(mouse_x, mouse_y)
+		self.cooldowns.attack.time = self.cooldowns.attack.max
 	end
 end
 
