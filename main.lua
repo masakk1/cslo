@@ -14,30 +14,40 @@ local world = bump.newWorld()
 Object = require("lib.classic")
 require("classes.player")
 require("classes.wall")
+require("classes.enemy")
 
-local player = Player(world)
-world:add(player, player.x, player.y, player.radius * 2, player.radius * 2)
+local entityList = {}
+local objectList = {}
+local player = Player({ world = world, name = "Tom", size = 60 })
+table.insert(entityList, player)
+world:add(player, player.x, player.y, player.w, player.h)
 
-local wallList = {}
 local test_wall = Wall(300, 300, 100, 100)
 world:add(test_wall, test_wall.x, test_wall.y, test_wall.width, test_wall.height)
-table.insert(wallList, test_wall)
+table.insert(objectList, test_wall)
+
+local test_enemy = Enemy({ x = 600, y = 300, size = 100 })
+world:add(test_enemy, test_enemy.x, test_enemy.y, test_enemy.w, test_enemy.h)
+table.insert(entityList, test_enemy)
 
 --// Load //
 function love.load() end
 
 --// Draw //
 function love.draw()
-	player:draw()
-
-	for i, wall in ipairs(wallList) do
-		wall:draw()
+	for _, entity in ipairs(entityList) do
+		entity:draw()
+	end
+	for _, object in ipairs(objectList) do
+		object:draw()
 	end
 end
 
 --// Update //
 function love.update(dt)
-	player:update(dt)
+	for _, entity in ipairs(entityList) do
+		entity:update(dt)
+	end
 end
 
 --++ DEBUGGING ++--
