@@ -1,13 +1,21 @@
 Player = Object:extend()
+local DEBUGGING = true
 
 --// Class //
 function Player:new(world)
 	self.isPlayer = true
 	self.name = "Tom"
 	self.world = world
+	self.debugDraw = {}
 
-	self.cooldowns = {
-		attack = { time = 0, max = 0.5 },
+	self.attacks = {
+		punch = {
+			cooldown = 0.5,
+			time = 0,
+			damage = 10,
+			range = 80,
+			distance = 110,
+		},
 	}
 
 	self.x = 0
@@ -28,15 +36,21 @@ function Player:new(world)
 	end
 end
 
-function Player:attack(mouse_x, mouse_y)
+function Player:attack()
+	local punch = self.attacks.punch
 	print(self.name, "attacked")
+	local box_x = (self.x + math.cos(self.angle) * punch.distance) - punch.range / 2
+	local box_y = (self.y + math.sin(self.angle) * punch.distance) - punch.range / 2
+
+	print(self.world:queryRect(box_x, box_y, punch.range, punch.range))
+	table.insert(self.debugDraw, { x = box_x, y = box_y, w = punch.range, h = punch.range, t = 50 })
 end
 
 function Player:update(dt)
 	--update cooldowns
-	for _, timer in pairs(self.cooldowns) do
-		if timer.time > 0 then
-			timer.time = timer.time - dt
+	for _, attack in pairs(self.attacks) do
+		if attack.time > 0 then
+			attack.time = attack.time - dt
 		end
 	end
 
@@ -65,9 +79,9 @@ function Player:update(dt)
 	self.angle = math.atan2(mouse_y - self.y, mouse_x - self.x)
 
 	--action
-	if love.mouse.isDown(1) and self.cooldowns.attack.time <= 0 then
-		self:attack(mouse_x, mouse_y)
-		self.cooldowns.attack.time = self.cooldowns.attack.max
+	if love.mouse.isDown(1) and self.attacks.punch.time <= 0 then
+		self:attack()
+		self.attacks.punch.time = self.attacks.punch.cooldown
 	end
 end
 
@@ -88,4 +102,20 @@ function Player:draw()
 
 	love.graphics.circle("line", lhand_x, lhand_y, self.hand_radius)
 	love.graphics.circle("line", rhand_x, rhand_y, self.hand_radius)
+
+	--debug
+	if not DEBUGGING then
+		return
+	end
+	for i = 1, #self.debugDraw do
+		local r = self.debugDraw[i]
+		if r then
+			love.graphics.rectangle("line", r.x, r.y, r.w, r.h)
+			if r.t <= 0 then
+				table.remove(self.debugDraw, i)
+			else
+				self.debugDraw[i].t = self.debugDraw[i].t - 1
+			end
+		end
+	end
 end
