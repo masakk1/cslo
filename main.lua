@@ -37,7 +37,7 @@ end
 
 --// Update //
 function love.update(dt)
-	player:update(dt, world)
+	player:update(dt)
 end
 
 --++ DEBUGGING ++--
