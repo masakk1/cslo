@@ -1,9 +1,10 @@
 Player = Object:extend()
 
 --// Class //
-function Player:new()
+function Player:new(world)
 	self.isPlayer = true
 	self.name = "Tom"
+	self.world = world
 
 	self.cooldowns = {
 		attack = { time = 0, max = 0.5 },
@@ -31,7 +32,7 @@ function Player:attack(mouse_x, mouse_y)
 	print(self.name, "attacked")
 end
 
-function Player:update(dt, world)
+function Player:update(dt)
 	--update cooldowns
 	for _, timer in pairs(self.cooldowns) do
 		if timer.time > 0 then
@@ -40,25 +41,24 @@ function Player:update(dt, world)
 	end
 
 	--move input
-	local move_x, move_y = 0, 0
+	local dx, dy = 0, 0
 	if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
-		move_y = move_y - 1
+		dy = dy - self.speed * dt
 	end
 	if love.keyboard.isDown("s") or love.keyboard.isDown("down") then
-		move_y = move_y + 1
+		dy = dy + self.speed * dt
 	end
 	if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
-		move_x = move_x - 1
+		dx = dx - self.speed * dt
 	end
 	if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
-		move_x = move_x + 1
+		dx = dx + self.speed * dt
 	end
 	--move
-	local goal_x = self.x + move_x * self.speed * dt
-	local goal_y = self.y + move_y * self.speed * dt
-	local actualX, actualY, cols, len =
-		world:move(self, goal_x - self.radius, goal_y - self.radius, self.collisionFilter)
-	self.x, self.y = actualX + self.radius, actualY + self.radius
+	local goal_x = self.x + dx
+	local goal_y = self.y + dy
+	local actual_x, actual_y = self.world:move(self, goal_x - self.radius, goal_y - self.radius, self.collisionFilter)
+	self.x, self.y = actual_x + self.radius, actual_y + self.radius
 
 	--get angle
 	local mouse_x, mouse_y = love.mouse.getPosition()

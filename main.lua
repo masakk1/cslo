@@ -15,8 +15,8 @@ Object = require("lib.classic")
 require("classes.player")
 require("classes.wall")
 
-local player = Player()
-world:add(player, player.x - player.radius, player.y - player.radius, player.radius * 2, player.radius * 2)
+local player = Player(world)
+world:add(player, player.x, player.y, player.radius * 2, player.radius * 2)
 
 local wallList = {}
 local test_wall = Wall(300, 300, 100, 100)
