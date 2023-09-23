@@ -1,5 +1,10 @@
 Player = Object:extend()
 local DEBUGGING = true
+local States = {
+	Idle = true,
+	Walk = true,
+	Attack = true,
+}
 
 --// Class //
 function Player:new(data)
@@ -10,7 +15,8 @@ function Player:new(data)
 	self.isAlive = true
 	self.name = data.name or "Player"
 	self.world = data.world
-	self.debugDraw = {}
+
+	self.state = States.Idle
 
 	self.attacks = {
 		punch = {
@@ -19,6 +25,7 @@ function Player:new(data)
 			damage = 10,
 			range = 80,
 			distance = 110,
+			anim = function() end,
 		},
 	}
 
@@ -39,10 +46,12 @@ function Player:new(data)
 			return "slide"
 		end
 	end
+
+	self.debugDraw = {}
 end
 
-function Player:attack()
-	local punch = self.attacks.punch
+--// Action Functions //
+function Player:attack(attack)
 	local box_x = (self.x + self.w / 2 + math.cos(self.angle) * punch.distance) - punch.range / 2
 	local box_y = (self.y + self.h / 2 + math.sin(self.angle) * punch.distance) - punch.range / 2
 
@@ -58,6 +67,7 @@ function Player:attack()
 	end
 end
 
+--// Entity Functions //
 function Player:takeDamage(damage)
 	self.health = self.health - damage
 	if self.health <= 0 then
@@ -69,65 +79,85 @@ function Player:destroy()
 	self.isAlive = false
 	--TODO: death animation and respawn
 end
-function Player:update(dt)
-	--update cooldowns
-	for _, attack in pairs(self.attacks) do
-		if attack.time > 0 then
-			attack.time = attack.time - dt
-		end
-	end
 
-	--move input
-	local dx, dy = 0, 0
-	if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
-		dy = dy - self.speed * dt
-	end
-	if love.keyboard.isDown("s") or love.keyboard.isDown("down") then
-		dy = dy + self.speed * dt
-	end
-	if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
-		dx = dx - self.speed * dt
-	end
-	if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
-		dx = dx + self.speed * dt
-	end
-	--move
-	local goal_x = self.x + dx
-	local goal_y = self.y + dy
-	local actual_x, actual_y = self.world:move(self, goal_x, goal_y, self.collisionFilter)
-	self.x, self.y = actual_x, actual_y
-
-	--get angle
+--// Update Functions //
+function Player:getAngle()
 	local mouse_x, mouse_y = love.mouse.getPosition()
 	self.angle = math.atan2(mouse_y - self.y - self.h / 2, mouse_x - self.x - self.w / 2)
+end
 
-	--action
+function Player:move(dt)
+	self.dx, self.dy = 0, 0
+	if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
+		self.dy = self.dy - self.speed * dt
+	end
+	if love.keyboard.isDown("s") or love.keyboard.isDown("down") then
+		self.dy = self.dy + self.speed * dt
+	end
+	if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
+		self.dx = self.dx - self.speed * dt
+	end
+	if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
+		self.dx = self.dx + self.speed * dt
+	end
+	--move
+	local goal_x = self.x + self.dx
+	local goal_y = self.y + self.dy
+	local actual_x, actual_y = self.world:move(self, goal_x, goal_y, self.collisionFilter)
+	self.x, self.y = actual_x, actual_y
+end
+
+function Player:actionCheck()
 	if love.mouse.isDown(1) and self.attacks.punch.time <= 0 then
 		self:attack()
 		self.attacks.punch.time = self.attacks.punch.cooldown
 	end
 end
 
-function Player:draw()
-	--body
-	love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
+function Player:updateCooldowns(dt)
+	for _, attack in pairs(self.attacks) do
+		if attack.time > 0 then
+			attack.time = attack.time - dt
+		end
+	end
+end
 
-	--hands
-	local radius_sum = self.w / 2 + self.hand_w / 2
+--// Animations //
+function Player:animIdle()
+	local distance = self.w / 2 + self.hand_w / 2
 	local center_x, center_y = self.x + self.w / 2, self.y + self.h / 2
 
 	local lhand_angle = self.angle + math.rad(45)
-	local lhand_x = center_x - self.hand_w / 2 + math.cos(lhand_angle) * radius_sum
-	local lhand_y = center_y - self.hand_w / 2 + math.sin(lhand_angle) * radius_sum
+	local lhand_x = center_x - self.hand_w / 2 + math.cos(lhand_angle) * distance
+	local lhand_y = center_y - self.hand_h / 2 + math.sin(lhand_angle) * distance
 
 	local rhand_angle = self.angle - math.rad(45)
-	local rhand_x = center_x - self.hand_w / 2 + math.cos(rhand_angle) * radius_sum
-	local rhand_y = center_y - self.hand_w / 2 + math.sin(rhand_angle) * radius_sum
+	local rhand_x = center_x - self.hand_w / 2 + math.cos(rhand_angle) * distance
+	local rhand_y = center_y - self.hand_h / 2 + math.sin(rhand_angle) * distance
+
+	love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
 	love.graphics.rectangle("line", lhand_x, lhand_y, self.hand_w, self.hand_h)
 	love.graphics.rectangle("line", rhand_x, rhand_y, self.hand_w, self.hand_h)
+end
 
-	--debug
+--// Update //
+function Player:update(dt)
+	-- Update cooldowns
+	self:updateCooldowns(dt)
+
+	-- Input
+	self:move(dt)
+	self:actionCheck()
+	self:getAngle()
+end
+
+--// Draw //
+function Player:draw()
+	-- Draw player
+	self:animIdle()
+
+	-- debug
 	if not DEBUGGING then
 		return
 	end
