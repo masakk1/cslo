@@ -51,6 +51,7 @@ function love.update(dt)
 end
 
 --++ DEBUGGING ++--
+---@diagnostic disable-next-line: undefined-field
 local love_errorhandler = love.errhand
 
 function love.errorhandler(msg)
