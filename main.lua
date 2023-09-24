@@ -12,7 +12,7 @@ local world = bump.newWorld()
 
 --objects
 Object = require("lib.classic")
-require("classes.player")
+require("player")
 require("classes.wall")
 require("classes.enemy")
 

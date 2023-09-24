@@ -6,6 +6,10 @@ local States = {
 	Attack = true,
 }
 
+local function lerp(a, b, t)
+	return (1 - t) * a + t * b
+end
+
 --// Class //
 function Player:new(data)
 	if not data.world then
@@ -48,20 +52,22 @@ function Player:new(data)
 	end
 
 	self.debugDraw = {}
+	self.past = self
 end
 
 --// Action Functions //
 function Player:attack(attack)
-	local box_x = (self.x + self.w / 2 + math.cos(self.angle) * punch.distance) - punch.range / 2
-	local box_y = (self.y + self.h / 2 + math.sin(self.angle) * punch.distance) - punch.range / 2
+	print(attack)
+	local box_x = (self.x + self.w / 2 + math.cos(self.angle) * attack.distance) - attack.range / 2
+	local box_y = (self.y + self.h / 2 + math.sin(self.angle) * attack.distance) - attack.range / 2
 
-	table.insert(self.debugDraw, { x = box_x, y = box_y, w = punch.range, h = punch.range, t = 50 })
-	local items, len = self.world:queryRect(box_x, box_y, punch.range, punch.range)
+	table.insert(self.debugDraw, { x = box_x, y = box_y, w = attack.range, h = attack.range, t = 50 })
+	local items, len = self.world:queryRect(box_x, box_y, attack.range, attack.range)
 
 	for i = 1, len do
 		local item = items[i]
 		if item.isAlive then
-			item:takeDamage(punch.damage)
+			item:takeDamage(attack.damage)
 			print("hit:", item.name, "| health:", item.health)
 		end
 	end
@@ -109,7 +115,7 @@ end
 
 function Player:actionCheck()
 	if love.mouse.isDown(1) and self.attacks.punch.time <= 0 then
-		self:attack()
+		self:attack(self.attacks.punch)
 		self.attacks.punch.time = self.attacks.punch.cooldown
 	end
 end
@@ -134,6 +140,20 @@ function Player:animIdle()
 	local rhand_angle = self.angle - math.rad(45)
 	local rhand_x = center_x - self.hand_w / 2 + math.cos(rhand_angle) * distance
 	local rhand_y = center_y - self.hand_h / 2 + math.sin(rhand_angle) * distance
+	if not self.past.lhand_x then
+		self.past.lhand_x = lhand_x
+		self.past.lhand_y = lhand_y
+		self.past.rhand_x = rhand_x
+		self.past.rhand_y = rhand_y
+	end
+
+	lhand_x = lerp(self.past.lhand_x, lhand_x, 0.15)
+	lhand_y = lerp(self.past.lhand_y, lhand_y, 0.15)
+	self.past.lhand_x, self.past.lhand_y = lhand_x, lhand_y
+
+	rhand_x = lerp(self.past.rhand_x, rhand_x, 0.15)
+	rhand_y = lerp(self.past.rhand_y, rhand_y, 0.15)
+	self.past.rhand_x, self.past.rhand_y = rhand_x, rhand_y
 
 	love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
@@ -142,6 +162,7 @@ function Player:animIdle()
 end
 
 --// Update //
+local true_past = nil
 function Player:update(dt)
 	-- Update cooldowns
 	self:updateCooldowns(dt)
