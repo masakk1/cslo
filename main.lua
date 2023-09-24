@@ -7,18 +7,19 @@ end
 --// Variables //
 --collisions
 local bump = require("lib.bump")
-
 local world = bump.newWorld()
 
 --objects
 Object = require("lib.classic")
+require("lib.animations")
+
 require("player")
-require("classes.wall")
 require("classes.enemy")
+require("classes.wall")
 
 local entityList = {}
 local objectList = {}
-local player = Player({ world = world, name = "Tom", size = 60 })
+local player = Player({ world = world, name = "Tom", size = 70 })
 table.insert(entityList, player)
 world:add(player, player.x, player.y, player.w, player.h)
 

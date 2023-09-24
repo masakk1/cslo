@@ -6,10 +6,6 @@ local States = {
 	Attack = true,
 }
 
-local function lerp(a, b, t)
-	return (1 - t) * a + t * b
-end
-
 --// Class //
 function Player:new(data)
 	if not data.world then
@@ -19,6 +15,7 @@ function Player:new(data)
 	self.isAlive = true
 	self.name = data.name or "Player"
 	self.world = data.world
+	print(self.anims)
 
 	self.state = States.Idle
 
@@ -40,10 +37,12 @@ function Player:new(data)
 
 	self.health = data.health or 100
 
-	self.w = data.w or data.size or 30
-	self.h = data.h or data.size or 30
+	self.w = data.w or data.size or 60
+	self.h = data.h or data.size or 60
+	self.body_img = data.body_img or love.graphics.newImage("assets/Textures/Characters/red_character.png")
 	self.hand_w = data.hand_w or data.size / 2.5 or 10
 	self.hand_h = data.hand_h or data.size / 2.5 or 10
+	self.hand_img = data.hand_img or love.graphics.newImage("assets/Textures/Characters/red_hand.png")
 
 	self.collisionFilter = function(item, other)
 		if other.isWall or other.isAlive then
@@ -52,7 +51,8 @@ function Player:new(data)
 	end
 
 	self.debugDraw = {}
-	self.past = self
+	self.past = {}
+	self.anims = Anims(self)
 end
 
 --// Action Functions //
@@ -129,36 +129,38 @@ function Player:updateCooldowns(dt)
 end
 
 --// Animations //
-function Player:animIdle()
-	local distance = self.w / 2 + self.hand_w / 2
+local function imgCenter(img)
+	return img:getPixelWidth() / 2, img:getPixelHeight() / 2
+end
+function Player:animate()
 	local center_x, center_y = self.x + self.w / 2, self.y + self.h / 2
+	local halfHandW, halfHandH = self.hand_w / 2, self.hand_h / 2
+	love.graphics.draw(self.body_img, center_x, center_y, 0, 1, 1, imgCenter(self.body_img))
+	-- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-	local lhand_angle = self.angle + math.rad(45)
-	local lhand_x = center_x - self.hand_w / 2 + math.cos(lhand_angle) * distance
-	local lhand_y = center_y - self.hand_h / 2 + math.sin(lhand_angle) * distance
+	self.anims:calculatePositions()
+	self.anims:lerpPositions()
 
-	local rhand_angle = self.angle - math.rad(45)
-	local rhand_x = center_x - self.hand_w / 2 + math.cos(rhand_angle) * distance
-	local rhand_y = center_y - self.hand_h / 2 + math.sin(rhand_angle) * distance
-	if not self.past.lhand_x then
-		self.past.lhand_x = lhand_x
-		self.past.lhand_y = lhand_y
-		self.past.rhand_x = rhand_x
-		self.past.rhand_y = rhand_y
-	end
-
-	lhand_x = lerp(self.past.lhand_x, lhand_x, 0.15)
-	lhand_y = lerp(self.past.lhand_y, lhand_y, 0.15)
-	self.past.lhand_x, self.past.lhand_y = lhand_x, lhand_y
-
-	rhand_x = lerp(self.past.rhand_x, rhand_x, 0.15)
-	rhand_y = lerp(self.past.rhand_y, rhand_y, 0.15)
-	self.past.rhand_x, self.past.rhand_y = rhand_x, rhand_y
-
-	love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
-
-	love.graphics.rectangle("line", lhand_x, lhand_y, self.hand_w, self.hand_h)
-	love.graphics.rectangle("line", rhand_x, rhand_y, self.hand_w, self.hand_h)
+	love.graphics.draw(
+		self.hand_img,
+		self.lhand_x + halfHandW,
+		self.lhand_y + halfHandH,
+		0,
+		1,
+		1,
+		imgCenter(self.hand_img)
+	)
+	love.graphics.draw(
+		self.hand_img,
+		self.rhand_x + halfHandW,
+		self.rhand_y + halfHandH,
+		0,
+		1,
+		1,
+		imgCenter(self.hand_img)
+	)
+	-- love.graphics.rectangle("line", self.lhand_x, self.lhand_y, self.hand_w, self.hand_h)
+	-- love.graphics.rectangle("line", self.rhand_x, self.rhand_y, self.hand_w, self.hand_h)
 end
 
 --// Update //
@@ -176,7 +178,7 @@ end
 --// Draw //
 function Player:draw()
 	-- Draw player
-	self:animIdle()
+	self:animate()
 
 	-- debug
 	if not DEBUGGING then

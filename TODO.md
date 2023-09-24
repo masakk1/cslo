@@ -2,7 +2,7 @@ Main tasks:
     1. [X] Finish hitboxes
     2. [X] Elaborate further on player.lua as an entity
     3. [X] Learn how to do animations
-    4. [ ] Replace love.graphics with textures
+    4. [X] Replace love.graphics with textures
     5. [ ] Make animations and a testing class
     6. [ ] Apply animations
     7. [ ] Add Networking
@@ -13,17 +13,14 @@ Main tasks:
     12. [ ] Elaborate on inputs (i.e. type of attacks)
     13. [ ] Make various classes and animations
     14. [ ] Add feedback to attacks (i.e. camera shake, particles)
+    15. [ ] Remove unused textures for space (i.e. tilesheet / texture)
 
-Current task: Replace love.graphics with textures
-  - add every texture to assets/
-  - specially stuff realted to a knight, that's whats coming next.
-
-Next task: Make animations and finish testing class
-  - remember to use lerps! maybe find a library for tweens n such. Very helpful!
-  - make simple animation on chars info
-  - make it work on player.lua
-  - port it to animations.lua 
-  - make animations for the test class (knight)
+Current task: Make animations and finish testing class
+  - [X] remember to use lerps! maybe find a library for tweens n such. Very helpful!
+  - [X] make simple animation on chars info
+  - [ ] make it work on player.lua
+  - [ ] port it to animations.lua 
+  - [ ] make animations for the test class (knight)
 
 
 classes brainstorming:

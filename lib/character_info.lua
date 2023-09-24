@@ -33,10 +33,7 @@ return {
 					hitbox_spread({ distance = 100, size = 75, spread = { -45, 45 }, res = 3 }), --main
 					hitbox_spread({ distance = 170, size = 75, spread = { -45, 45 }, res = 5 }), --longer range
 				},
-				anim = function()
-					--TODO
-					return { lhand_x = _, lhand_y = _, rhand_x = _, rhand_y = _ }
-				end,
+				anim = "BroadSwing",
 			},
 			[2] = {},
 		},
