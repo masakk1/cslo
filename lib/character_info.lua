@@ -10,32 +10,41 @@ local function hitbox_spread(data)
 	for i = 0, data.res - 1 do
 		local angle_offset = data.spread[1] + i * spacing
 		table.insert(hitboxes, {
-			angle = angle_offset,
+			angle = math.rad(angle_offset),
 			distance = data.distance,
 			size = data.size,
 		})
 	end
-	return table.unpack(hitboxes)
+	return unpack(hitboxes)
 end
 
 --// Classes //
 return {
-	knight = {
-		name = "Jerry",
-		description = "A simple knight. Not a hollow one!",
+	bare = { -- testing class pretty much.
+		name = "Carlitos",
+		description = "cuidao q t meto.",
 		actions = {
-			[1] = {
+			atk1 = {
 				name = "swing",
-				cooldown = 1,
+				cooldown = 0.1,
 				time = 0,
 				damage = 10,
-				hitboxes = { --x = angle, y = distance(+player.h/2), s = range
-					hitbox_spread({ distance = 100, size = 75, spread = { -45, 45 }, res = 3 }), --main
-					hitbox_spread({ distance = 170, size = 75, spread = { -45, 45 }, res = 5 }), --longer range
+				boxes = { --x = angle, y = distance, s = range
+					--hitbox_spread({ distance = 150, size = 100, spread = { -45, 45 }, res = 3 }), --main
+					{ angle = 0, distance = 150, size = 100 },
 				},
-				anim = "BroadSwing",
+				combo = 3, -- nil == no combo
+				animations = {
+					gridSize = { 512, 512 },
+					sheet = "assets/Animations/punches",
+					{
+						{},
+						{},
+						{},
+					},
+				},
 			},
-			[2] = {},
+			atk2 = {},
 		},
 	},
 }

@@ -1,29 +1,20 @@
 Player = Object:extend()
 local DEBUGGING = true
-local States = { Idle = 1, Walk, Attack }
 
 --// Class //
 function Player:new(data)
-	if not data.world then
-		error("Player must have a world")
+	if not data.world or not data.character then
+		error("Player must have a world be given a character")
 	end
 	self.isPlayer = true
 	self.isAlive = true
-	self.name = data.name or "Player"
 	self.world = data.world
+	self.name = data.name or "Player"
+
+	self.char = data.character
 
 	self.state = "idle"
-
-	self.attacks = {
-		atk1 = {
-			cooldown = 0.5,
-			time = 0,
-			damage = 10,
-			range = 80,
-			distance = 110,
-			anim = function() end,
-		},
-	}
+	self.actionsCooldown = 0
 
 	self.x = data.x or 0
 	self.y = data.y or 0
@@ -52,18 +43,36 @@ end
 
 --// Action Functions //
 function Player:attack(attack)
-	print(attack)
-	local box_x = (self.x + self.w / 2 + math.cos(self.angle) * attack.distance) - attack.range / 2
-	local box_y = (self.y + self.h / 2 + math.sin(self.angle) * attack.distance) - attack.range / 2
+	local boxes = attack.boxes
+	local hits = {}
 
-	table.insert(self.debugDraw, { x = box_x, y = box_y, w = attack.range, h = attack.range, t = 50 })
-	local items, len = self.world:queryRect(box_x, box_y, attack.range, attack.range)
+	local items, len = {}, 0
+	-- check collisions
+	for _, box in pairs(boxes) do
+		if box.angle then -- angle-based
+			local cos = math.cos(self.angle + box.angle)
+			local sin = math.sin(self.angle + box.angle)
+			local bw, bh = box.size, box.size
+			local bx = (self.x + self.w / 2 - box.size / 2) + cos * box.distance
+			local by = (self.y + self.h / 2 - box.size / 2) + sin * box.distance
 
-	for i = 1, len do
-		local item = items[i]
-		if item.isAlive then
-			item:takeDamage(attack.damage)
-			print("hit:", item.name, "| health:", item.health)
+			table.insert(self.debugDraw, { x = bx, y = by, w = bw, h = bh, t = 50 })
+			items, len = self.world:queryRect(bx, by, bw, bh)
+		else -- position based (UNTESTED)
+			table.insert(self.debugDraw, { x = box.x, y = box.y, w = box.w, h = box.h, t = 50 })
+			items, len = self.world:queryRect(box.x, box.y, box.w, box.h)
+		end
+
+		-- validate hits
+		for i = 1, len do
+			local item = items[i]
+			table.insert(hits, item)
+
+			-- do damage
+			if item.isAlive then
+				item:takeDamage(attack.damage)
+				print("hit:", item.name, "| health:", item.health) -- DEBUGGING - REMOVE LATER!
+			end
 		end
 	end
 end
@@ -109,22 +118,30 @@ function Player:move()
 end
 
 function Player:actionCheck()
-	if love.mouse.isDown(1) and self.attacks.atk1.time <= 0 then
-		self:attack(self.attacks.atk1)
-		self.attacks.atk1.time = self.attacks.atk1.cooldown
+	local atk1 = self.char.actions.atk1
+	if love.mouse.isDown(1) and atk1.time <= 0 and self.actionsCooldown <= 0 then
+		self:attack(atk1)
+		self.state = "action"
+		self.action = atk1
+		atk1.time = atk1.cooldown
+		self.actionsCooldown = atk1.actionDuration or 0.5 -- REMOVE THIS LATER ON!
 	end
 end
 
 function Player:updateCooldowns()
-	for _, attack in pairs(self.attacks) do
-		if attack.time > 0 then
-			attack.time = attack.time - self.dt
+	for _, action in pairs(self.char.actions) do
+		if not action.time then
+			action.time = 0
+		end
+		if action.time > 0 then
+			action.time = action.time - self.dt
 		end
 	end
+	self.actionsCooldown = self.actionsCooldown - self.dt
 end
 
 function Player:calculateState()
-	if self.state ~= "action" then
+	if self.actionsCooldown <= 0 then
 		if self.dx ~= 0 or self.dy ~= 0 then
 			self.state = "walk"
 		else
@@ -142,7 +159,12 @@ function Player:animate()
 	love.graphics.draw(self.body_img, center_x, center_y, 0, 1, 1, imgCenter(self.body_img))
 	-- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
-	self.anims:doAnimation(self.state)
+	if self.state == "action" then
+		self.anims:doAnimation(self.action.anim)
+	else
+		self.anims:clearAnimation()
+		self.anims:doAnimation(self.state)
+	end
 
 	local halfHandW, halfHandH = self.hand_w / 2, self.hand_h / 2
 	local lImg_x, lImg_y = self.lhand_x + halfHandW, self.lhand_y + halfHandH
@@ -154,7 +176,6 @@ function Player:animate()
 end
 
 --// Update //
-local true_past = nil
 function Player:update(dt)
 	self.dt = dt
 	-- Update cooldowns

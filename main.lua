@@ -9,7 +9,8 @@ end
 local bump = require("lib.bump")
 local world = bump.newWorld()
 
---objects
+--require require require!
+local char_info = require("lib.character_info")
 Object = require("lib.classic")
 require("lib.animations")
 
@@ -19,7 +20,7 @@ require("classes.wall")
 
 local entityList = {}
 local objectList = {}
-local player = Player({ world = world, name = "Tom", size = 70 })
+local player = Player({ character = char_info.bare, world = world, name = "EyEyEy", size = 70 })
 table.insert(entityList, player)
 world:add(player, player.x, player.y, player.w, player.h)
 

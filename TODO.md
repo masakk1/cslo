@@ -16,11 +16,6 @@ Main tasks:
     15. [ ] Remove unused textures for space (i.e. tilesheet / texture)
 
 Current task: Make animations and finish testing class
-  - [X] remember to use lerps! maybe find a library for tweens n such. Very helpful!
-  - [X] make simple animation on chars info
-  - [X] make the idle/walk (DEFAULT)
-  - [ ] add states (idle/walk)
-  - [ ] make animations for the test class (knight, idle/walk/action[atk1, atk2])
 
 
 classes brainstorming:
