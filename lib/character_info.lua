@@ -20,12 +20,12 @@ end
 
 --// Classes //
 return {
-	bare = { -- testing class pretty much.
-		name = "Carlitos",
+	boxer = { -- testing class pretty much.
+		name = "Boxer",
 		description = "cuidao q t meto.",
 		actions = {
 			atk1 = {
-				name = "swing",
+				name = "punch",
 				cooldown = 0.1,
 				time = 0,
 				damage = 10,
@@ -35,16 +35,23 @@ return {
 				},
 				combo = 3, -- nil == no combo
 				animations = {
-					gridSize = { 512, 512 },
-					sheet = "assets/Animations/punches",
-					{
-						{},
-						{},
-						{},
+					sheet = "assets/Animations/boxing.png",
+					frames = {
+						{ "1-9",1 },
+						{ "1-9",2 },
 					},
 				},
 			},
-			atk2 = {},
+			--atk2 = {},
 		},
+		idleAnim = {
+			name = "idle",
+			sheet = "assets/Animations/boxing.png",
+			frames = {
+				{ "1-9",1 },
+			}
+		}
+
+		
 	},
 }

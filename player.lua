@@ -23,6 +23,7 @@ function Player:new(data)
 
 	self.health = data.health or 100
 
+	-- TODO: REMOVE THIS
 	self.w = data.w or data.size or 60
 	self.h = data.h or data.size or 60
 	self.body_img = data.body_img or love.graphics.newImage("assets/Textures/Characters/red_character.png")
@@ -150,31 +151,6 @@ function Player:calculateState()
 	end
 end
 
---// Animations //
-local function imgCenter(img)
-	return img:getPixelWidth() / 2, img:getPixelHeight() / 2
-end
-function Player:animate()
-	local center_x, center_y = self.x + self.w / 2, self.y + self.h / 2
-	love.graphics.draw(self.body_img, center_x, center_y, 0, 1, 1, imgCenter(self.body_img))
-	-- love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
-
-	if self.state == "action" then
-		self.anims:doAnimation(self.action.anim)
-	else
-		self.anims:clearAnimation()
-		self.anims:doAnimation(self.state)
-	end
-
-	local halfHandW, halfHandH = self.hand_w / 2, self.hand_h / 2
-	local lImg_x, lImg_y = self.lhand_x + halfHandW, self.lhand_y + halfHandH
-	local rImg_x, rImg_y = self.rhand_x + halfHandW, self.rhand_y + halfHandH
-	love.graphics.draw(self.hand_img, lImg_x, lImg_y, 0, 1, 1, imgCenter(self.hand_img))
-	love.graphics.draw(self.hand_img, rImg_x, rImg_y, 0, 1, 1, imgCenter(self.hand_img))
-	-- love.graphics.rectangle("line", self.lhand_x, self.lhand_y, self.hand_w, self.hand_h)
-	-- love.graphics.rectangle("line", self.rhand_x, self.rhand_y, self.hand_w, self.hand_h)
-end
-
 --// Update //
 function Player:update(dt)
 	self.dt = dt
@@ -187,12 +163,15 @@ function Player:update(dt)
 	self:getAngle()
 
 	self:calculateState()
+
+	-- Animations
+	self.anims:update()
 end
 
 --// Draw //
 function Player:draw()
 	-- Draw player
-	self:animate()
+	self.anims:update()
 
 	-- debug
 	if not DEBUGGING then
