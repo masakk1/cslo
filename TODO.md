@@ -3,19 +3,27 @@ Main tasks:
     2. [X] Elaborate further on player.lua as an entity
     3. [X] Learn how to do animations
     4. [X] Replace love.graphics with textures
-    5. [ ] Make animations and a testing class
-    6. [ ] Apply animations
-    7. [ ] Add Networking
-    8. [ ] Learn how to do a map
-    9. [ ] Do the map
+    5. [X] MAKE THE WHOLE FUCKING ANIMATONS SHIT AGAIN
+    6. [ ] Add Networking
+    7. [ ] Learn how to do a map
+    8.  [ ] Prepare for the map
+    9.  [ ] Do the map
     10. [ ] Organise main.lua
-    11. [ ] Make player.lua take on various classes
-    12. [ ] Elaborate on inputs (i.e. type of attacks)
-    13. [ ] Make various classes and animations
-    14. [ ] Add feedback to attacks (i.e. camera shake, particles)
-    15. [ ] Remove unused textures for space (i.e. tilesheet / texture)
+    11. [ ] How to do UI?
+    12. [ ] Do a simple HUI (health, cooldowns, buttons)
+    13. [ ] Make a Main Menu
+    14. [ ] Add properties to players
+    15. [ ] Add more attack types (i.e. abilities)
+    16. [ ] Develop Classes
+    17. [ ] Add abilities (Q and E) and more classes + make combos work
+    18. [ ] Add feedback to attacks (i.e. camera shake, particles)
+    19. [ ] Remove unused textures for space (i.e. tilesheet / texture)
 
-Current task: Make animations and finish testing class
+Current task: Add properties to players
+
+task: Add properties to players
+  - Add damangeReduction percentages and in attacks too
+  - Add healing points in attacks
 
 
 classes brainstorming:

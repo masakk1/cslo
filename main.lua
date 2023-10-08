@@ -20,7 +20,7 @@ require("classes.wall")
 
 local entityList = {}
 local objectList = {}
-local player = Player({ character = char_info.boxer, world = world, name = "EyEyEy", size = 70 })
+local player = Player({ character = char_info.knight, world = world, name = "EyEyEy", size = 70 })
 table.insert(entityList, player)
 world:add(player, player.x, player.y, player.w, player.h)
 

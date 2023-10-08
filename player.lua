@@ -1,50 +1,52 @@
 Player = Object:extend()
-local DEBUGGING = true
+local DEBUGGING = false
 
 --// Class //
 function Player:new(data)
 	if not data.world or not data.character then
 		error("Player must have a world be given a character")
 	end
+	-- Attributes
 	self.isPlayer = true
 	self.isAlive = true
+
+	-- Data
 	self.world = data.world
 	self.name = data.name or "Player"
-
 	self.char = data.character
 
-	self.state = "idle"
-	self.actionsCooldown = 0
-
+	-- Coordinates
 	self.x = data.x or 0
 	self.y = data.y or 0
-	self.speed = data.speed or (5 * 100)
 	self.angle = 0
+	self.w = 70
+	self.h = 70
+	self.hand_w = 10
+	self.hand_h = 10
 
-	self.health = data.health or 100
-
-	-- TODO: REMOVE THIS
-	self.w = data.w or data.size or 60
-	self.h = data.h or data.size or 60
-	self.body_img = data.body_img or love.graphics.newImage("assets/Textures/Characters/red_character.png")
-	self.hand_w = data.hand_w or data.size / 2.5 or 10
-	self.hand_h = data.hand_h or data.size / 2.5 or 10
-	self.hand_img = data.hand_img or love.graphics.newImage("assets/Textures/Characters/red_hand.png")
-
+	-- Collisions
 	self.collisionFilter = function(item, other)
 		if other.isWall or other.isAlive then
 			return "slide"
 		end
 	end
 
+	-- Debugging
+	self.debugging = DEBUGGING
 	self.debugDraw = {}
-	self.past = {}
+
+	-- Animaton
+	self.cooldowns = { atk1 = 0, atk2 = 0, global = 0 }
+	self.playerActions = self.char.actions
 	self.anims = Anims(self)
+
+	self.state = "idle"
+	self.action = self.playerActions.idle
 end
 
 --// Action Functions //
-function Player:attack(attack)
-	local boxes = attack.boxes
+function Player:attack(action)
+	local boxes = action.hitboxes
 	local hits = {}
 
 	local items, len = {}, 0
@@ -67,11 +69,14 @@ function Player:attack(attack)
 		-- validate hits
 		for i = 1, len do
 			local item = items[i]
-			table.insert(hits, item)
+			if not hits[item] then
+				hits[item] = true
 
-			-- do damage
-			if item.isAlive then
-				item:takeDamage(attack.damage)
+				-- do damage
+				if not item.isAlive then
+					return
+				end
+				item:takeDamage(action.damage)
 				print("hit:", item.name, "| health:", item.health) -- DEBUGGING - REMOVE LATER!
 			end
 		end
@@ -100,16 +105,16 @@ end
 function Player:move()
 	self.dx, self.dy = 0, 0
 	if love.keyboard.isDown("w") or love.keyboard.isDown("up") then
-		self.dy = self.dy - self.speed * self.dt
+		self.dy = self.dy - self.char.speed * self.dt
 	end
 	if love.keyboard.isDown("s") or love.keyboard.isDown("down") then
-		self.dy = self.dy + self.speed * self.dt
+		self.dy = self.dy + self.char.speed * self.dt
 	end
 	if love.keyboard.isDown("a") or love.keyboard.isDown("left") then
-		self.dx = self.dx - self.speed * self.dt
+		self.dx = self.dx - self.char.speed * self.dt
 	end
 	if love.keyboard.isDown("d") or love.keyboard.isDown("right") then
-		self.dx = self.dx + self.speed * self.dt
+		self.dx = self.dx + self.char.speed * self.dt
 	end
 	--move
 	local goal_x = self.x + self.dx
@@ -119,35 +124,45 @@ function Player:move()
 end
 
 function Player:actionCheck()
-	local atk1 = self.char.actions.atk1
-	if love.mouse.isDown(1) and atk1.time <= 0 and self.actionsCooldown <= 0 then
+	local atk1 = self.playerActions.atk1
+	local atk2 = self.playerActions.atk2
+
+	if self.action.type == "hold" then
+		-- if up, remove cooldown
+		if not (love.mouse.isDown(1) or love.mouse.isDown(2)) then
+			self.cooldowns.global = 0
+		end
+	end
+
+	if self.cooldowns.global > 0 then
+		return
+	elseif love.mouse.isDown(1) and self.cooldowns.atk1 <= 0 then
 		self:attack(atk1)
 		self.state = "action"
 		self.action = atk1
-		atk1.time = atk1.cooldown
-		self.actionsCooldown = atk1.actionDuration or 0.5 -- REMOVE THIS LATER ON!
+		self.cooldowns.atk1 = atk1.cooldown or atk1.duration
+		self.cooldowns.global = atk1.duration or atk1.cooldown
+	elseif love.mouse.isDown(2) and self.cooldowns.atk2 <= 0 then
+		self:attack(atk2)
+		self.state = "action"
+		self.action = atk2
+		self.cooldowns.atk2 = atk2.cooldown or atk1.duration
+		self.cooldowns.global = atk2.duration or atk2.cooldown
 	end
 end
 
 function Player:updateCooldowns()
-	for _, action in pairs(self.char.actions) do
-		if not action.time then
-			action.time = 0
-		end
-		if action.time > 0 then
-			action.time = action.time - self.dt
+	for k, cooldown in pairs(self.cooldowns) do
+		if cooldown > 0 then
+			self.cooldowns[k] = cooldown - self.dt
 		end
 	end
-	self.actionsCooldown = self.actionsCooldown - self.dt
 end
 
 function Player:calculateState()
-	if self.actionsCooldown <= 0 then
-		if self.dx ~= 0 or self.dy ~= 0 then
-			self.state = "walk"
-		else
-			self.state = "idle"
-		end
+	if self.cooldowns.global <= 0 then
+		self.state = "idle"
+		self.action = self.playerActions.idle
 	end
 end
 
@@ -171,7 +186,8 @@ end
 --// Draw //
 function Player:draw()
 	-- Draw player
-	self.anims:update()
+	self.anims:draw()
+	love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
 
 	-- debug
 	if not DEBUGGING then

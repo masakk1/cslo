@@ -12,4 +12,6 @@
 
 # commands
 1. ImageMagick to group multiple sprites into sprite sheet
-   - `montage * -background transparent -geometry 512x512 -filter Catrom aaapunchsheet.png`
+   - go to Code/cslo-anim-pngs (whered the sprites are located) and type: 
+   - `montage * -background transparent -geometry 512x512 -filter Catrom -tile 9x3 ../cslo-anim-result/result.png`
+   - change "../cslo-anim-result/result.png" for the result
